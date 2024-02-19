@@ -10,7 +10,6 @@ app = Flask(__name__)
 
 # Initialize OpenAI API key
 openai.api_key = os.environ.get("OPENAI_API_KEY")
-# "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"
 
 # Initialize Elasticsearch client
 #es = Elasticsearch()
