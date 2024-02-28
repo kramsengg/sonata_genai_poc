@@ -21,7 +21,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
+/__pycache__
 /genai
 /uploads
 web/client/package-lock.json
