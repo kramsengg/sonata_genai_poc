@@ -5,8 +5,10 @@ const App = () => {
   const [file, setFile] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [activeTab, setActiveTab] = useState('documentUpload');
 
   const handleFileChange = (event) => {
+    console.log(event.target.files[0]);
     setFile(event.target.files[0]);
   };
 
@@ -30,36 +32,23 @@ const App = () => {
     }
   };
 
-  // // Another example: Using .then after an async function
-  // const handleAnotherOperation = async () => {
-  //   try {
-  //     // Some asynchronous operation
-  //     const result = await someAsyncFunction();
 
-  //     // Using .then for further processing
-  //     result.then((data) => {
-  //       console.log('Result after .then:', data);
-  //     });
-  //   } catch (error) {
-  //     console.error('Error:', error.message);
-  //   }
-  // };
-
-  // // Dummy asynchronous function for illustration
-  // const someAsyncFunction = () => {
-  //   return new Promise((resolve) => {
-  //     setTimeout(() => {
-  //       resolve('Async operation completed');
-  //     }, 1000);
-  //   });
-  // };
+  const setFocus = (inputId) => {
+    const inputElement = document.getElementById(inputId);
+    if (inputElement) {
+      inputElement.focus();
+      setInput(inputElement.text)
+    }
+  };
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
+    
   };
 
   const handleSendMessage = () => {
-    if (input.trim() === '') return;
+    //const inputElement = document.getElementById('searchText');
+    if ( input.trim() === '') return;
     // Add user message to the state
     //setMessages([...messages, { text: input, isUser: true }]);
     setInput('');
@@ -68,12 +57,12 @@ const App = () => {
 
   const fetchData = async (input) => {
     try {
-      const response = await fetch('http://localhost:5000/searchnew',{
+      const response = await fetch('http://localhost:5000/searchnew', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({'query':input})
+        body: JSON.stringify({ 'query': input })
       });
       const result = await response.json();
       console.log(result);
@@ -88,37 +77,99 @@ const App = () => {
     }
   };
 
-  console.log("Message received ", messages); 
+  const DocumentUpload = () => (
+    <div>
+      <h2>Document Upload</h2>
+      {
+        /* Add your document upload logic here */
+        <div>
+          <input type="file" onChange={handleFileChange} />
+          <button onClick={handleFileUpload}>Upload File</button>
+        </div>
+      }
+    </div>
+  );
+
+  const ChatWindow = () => (
+    <div>
+      <h2>Chat Window</h2>
+      {
+        /* Add your chat window logic here */
+        <div>
+          <div style={{ height: '200px', overflowY: 'scroll', border: '1px solid #ccc' }}>
+            {messages.length > 0 && messages.map((response, index) => (
+              <div key={index} style={{ padding: '8px', textAlign: 'left' }}>
+                <span>{response.role}:
+                  {
+                    response.content.map((dat, ind) => (
+                      <p key={ind}>{dat.text}</p>
+                    ))
+                  }
+                </span>
+              </div>
+            ))}
+            <div>
+            </div>
+          </div>
+          <div style={{ marginTop: '8px' }}>
+            <input type="text" value={input} onChange={handleInputChange} />
+            <button onClick={handleSendMessage}>Send</button>
+          </div>
+        </div>
+      }
+    </div>
+  );
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
+
+  console.log("Message received ", messages);
   return (
     <div>
-    <div>
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleFileUpload}>Upload File</button>
-      {/* <button onClick={handleAnotherOperation}>Another Async Operation</button> */}
-    </div>
-    <div>
-        <div>
-      <div style={{ height: '200px', overflowY: 'scroll', border: '1px solid #ccc' }}>
-        {messages.length > 0 && messages.map((response, index) => (
-          <div key={index} style={{ padding: '8px', textAlign: 'left' }}>
-            <span>{response.role}:
-              {
-                response.content.map((dat,ind) => (
-                <p key={ind}>{dat.text}</p>
-                ))
-              }
-            </span>
-          </div>
-        ))}
-        <div>
+
+      <div>
+        <button onClick={() => handleTabChange('documentUpload')}>Document Upload</button>
+        <button onClick={() => handleTabChange('chatWindow')}>Chat Window</button>
       </div>
+
+      <div>
+        {activeTab === 'documentUpload' && <DocumentUpload />}
+        {activeTab === 'chatWindow' && <ChatWindow />}
       </div>
-      <div style={{ marginTop: '8px' }}>
-        <input type="text" value={input} onChange={handleInputChange} />
-        <button onClick={handleSendMessage}>Send</button>
-      </div>
-    </div>
+
+
+      <div>
+        {/* <div>
+          <input type="file" onChange={handleFileChange} />
+          <button onClick={handleFileUpload}>Upload File</button>
         </div>
+        <div>
+          <div>
+            <div style={{ height: '200px', overflowY: 'scroll', border: '1px solid #ccc' }}>
+              {messages.length > 0 && messages.map((response, index) => (
+                <div key={index} style={{ padding: '8px', textAlign: 'left' }}>
+                  <span>{response.role}:
+                    {
+                      response.content.map((dat, ind) => (
+                        <p key={ind}>{dat.text}</p>
+                      ))
+                    }
+                  </span>
+                </div>
+              ))}
+              <div>
+              </div>
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              <input type="text" value={input} onChange={handleInputChange} />
+              <button onClick={handleSendMessage}>Send</button>
+            </div>
+          </div>
+        </div> */}
+      </div>
+
     </div>
   );
 };
