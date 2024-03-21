@@ -9,6 +9,13 @@ from openai import OpenAI
 from flask_cors import CORS
 import time
 import custom_utils
+import pandas as pd
+import ast
+
+from pdfminer.high_level import extract_text
+from docx import Document
+import textract
+
 openai = OpenAI()
 
 app = Flask(__name__)
@@ -17,6 +24,11 @@ CORS(app)
 # Initialize OpenAI API key
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 client = openai
+
+data = {
+    'embedding': ['text', 'embedding']  # Replace with your actual data
+}
+#df = pd.DataFrame(data)
 
 # Directory to store uploaded documents
 UPLOAD_FOLDER = 'uploads'
@@ -47,6 +59,11 @@ def upload_file():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_upload.filename)
     file_upload.save(file_path)
     print("FILE PATH", file_path)
+
+    embeddings_path = os.path.join("uploads", "uploaded_docs_embeddings.csv")   
+    df['embedding'] = df['embedding'].apply(lambda x: custom_utils.get_embedding(x, model='text-embedding-3-small'))
+    df.to_csv(embeddings_path, index=False)
+
     # Upload the file
     file = openai.files.create(
         file=open(
@@ -82,6 +99,8 @@ def upload_file():
         file_ids=fileids,
     )
     show_json(assistant)
+
+
     return jsonify({'message': 'assistant'})
 
 @app.route('/search', methods=['POST'])
@@ -183,6 +202,44 @@ def search():
     # Serialize the data to JSON
     json_data = json.dumps(serializable_data, indent=2)
     return jsonify(json_data)
+
+@app.route('/uploadfile', methods=['POST'])
+def upload_file_to_process():
+    print("FILES", request.files)
+    file_upload = request.files['file']
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_upload.filename)
+    file_upload.save(file_path)
+    print("FILE PATH", file_path)
+
+    print (" TEXT PROCESSING and EMBEDDING Started")
+    embeddings_path = os.path.join("uploads", file_upload.filename+"_embeddings.csv")   
+    custom_utils.process_and_save_embeddings(file_path,embeddings_path)
+    
+    # df['embedding'] = df['embedding'].apply(lambda x: custom_utils.get_embedding(x, model='text-embedding-3-small'))
+    # df.to_csv(embeddings_path, index=False)
+    print (" TEXT PROCESSING and EMBEDDING Ended")
+    return jsonify({'message': 'assistant'})
+
+@app.route('/searchtext', methods=['GET','POST'])
+def searchwithembeddings():
+    #embeddings_path = os.path.join("uploads", "uploaded_docs_embeddings.csv")  
+    #embeddings_path = os.path.join("uploads", "Copy_Generative AI Tutorial.docx_embeddings.csv")
+    embeddings_path = os.path.join("uploads", "winter_olympics_2022.csv") 
+    df = pd.read_csv(embeddings_path)
+    #df['embeddings'] = df['embeddings'].apply(ast.literal_eval)
+
+    results_data = {}
+    # Your search logic here
+    if request.method == 'GET':
+        data = {'results': ['apple', 'banana', 'cherry']}
+    else:
+      query = request.json['query']
+
+
+    results = custom_utils.ask(query,df)
+
+    results_data = { 'response': results }
+    return jsonify(results_data)
 
 
 if __name__ == '__main__':
