@@ -18,7 +18,7 @@ const App = () => {
       formData.append('file', file);
 
       // Using axios.post with async/await
-      const response = await axios.post('http://localhost:5000/upload', formData, {
+      const response = await axios.post('http://localhost:5000/uploadfile', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -52,7 +52,8 @@ const App = () => {
     // Add user message to the state
     //setMessages([...messages, { text: input, isUser: true }]);
     setInput('');
-    fetchData(input);
+    //fetchData(input);
+    fetchDataText(input);
   };
 
   const fetchData = async (input) => {
@@ -77,6 +78,30 @@ const App = () => {
     }
   };
 
+  const fetchDataText = async (input) => {
+    try {
+      const response = await fetch('http://localhost:5000/searchtext', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 'query': input })
+      });
+      const result = await response.json();
+      console.log(result);
+
+      //let all_mes = [];
+      //all_mes = JSON.parse(result);
+
+      //result.response.data[0].content
+      setMessages(result.response.data)
+      //setMessages(all_mes.data);
+      setInput('');
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   const DocumentUpload = () => (
     <div>
       <h2>Document Upload</h2>
@@ -91,6 +116,7 @@ const App = () => {
   );
 
   const ChatWindow = () => (
+
     <div>
       <h2>Chat Window</h2>
       {
@@ -99,13 +125,14 @@ const App = () => {
           <div style={{ height: '200px', overflowY: 'scroll', border: '1px solid #ccc' }}>
             {messages.length > 0 && messages.map((response, index) => (
               <div key={index} style={{ padding: '8px', textAlign: 'left' }}>
-                <span>{response.role}:
-                  {
+                <span>{response.role}:</span>
+                <span>{response.content}</span>
+                  {/* {
                     response.content.map((dat, ind) => (
                       <p key={ind}>{dat.text}</p>
                     ))
-                  }
-                </span>
+                  } */}
+                
               </div>
             ))}
             <div>
@@ -126,6 +153,7 @@ const App = () => {
 
 
   console.log("Message received ", messages);
+
   return (
     <div>
 

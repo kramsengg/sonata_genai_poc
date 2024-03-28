@@ -3,3 +3,5 @@ tika
 openai
 elasticsearch
 flask-cors
+textract
+tiktoken
