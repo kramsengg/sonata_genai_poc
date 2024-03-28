@@ -21,6 +21,8 @@ client = OpenAI()
 client.api_key = os.environ.get("OPENAI_API_KEY")
 # Existing DataFrame
 df = pd.DataFrame(columns=["text", "embedding"])
+combined_df = pd.DataFrame(columns=["text", "embedding"])
+
 #embeddings_path = os.path.join("uploads", "winter_olympics_2022.csv")
 # embeddings_path = os.path.join("uploads", "uploaded_docs_embeddings.csv")   
 #df = pd.read_csv(embeddings_path)
@@ -216,7 +218,6 @@ def ask(
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def get_embedding(text, model="text-embedding-3-small"):
-    relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y)
     text = text.replace("\n", " ")
     print ("TEXT ", text)
     embed = client.embeddings.create(input = [text], model=model).data[0].embedding
@@ -321,7 +322,6 @@ def create_chunk(text, n, tokenizer):
         yield tokens[i:j]
         i = j
 
-
 def convert_to_list(x):
   """
   This function attempts to convert a string representation of a list to an actual list,
@@ -347,3 +347,29 @@ def convert_to_list(x):
 
   # Return None if conversion fails altogether
   return None
+
+def process_dataframe(df):
+    # Placeholder for the processing function
+    # Replace with your actual processing code
+    print("PROCESS DataFRAME ",df.head())
+
+def read_csv_files(folder_path):
+    # List to hold dataframes
+    dataframes = []
+    
+    # Iterate over all files in the uploads folder
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.csv'):
+            file_path = os.path.join(folder_path, filename)
+            # Read the CSV file into a dataframe
+            print("FILE PATH :", file_path)
+            temp_df = pd.read_csv(file_path)
+            # Append the dataframe to the list
+            dataframes.append(temp_df)
+            # Pass the dataframe to another function
+
+            process_dataframe(temp_df)
+    
+    combined_df = pd.concat(dataframes,ignore_index=True)
+    
+    return combined_df

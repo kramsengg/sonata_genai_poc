@@ -210,7 +210,6 @@ def upload_file_to_process():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_upload.filename)
     file_upload.save(file_path)
     print("FILE PATH", file_path)
-
     print (" TEXT PROCESSING and EMBEDDING Started")
     embeddings_path = os.path.join("uploads", file_upload.filename+"_embeddings.csv")   
     custom_utils.process_and_save_embeddings(file_path,embeddings_path)
@@ -224,8 +223,13 @@ def upload_file_to_process():
 def searchwithembeddings():
     #embeddings_path = os.path.join("uploads", "uploaded_docs_embeddings.csv")  
     #embeddings_path = os.path.join("uploads", "Copy_Generative AI Tutorial.docx_embeddings.csv")
-    embeddings_path = os.path.join("uploads", "winter_olympics_2022.csv") 
-    df = pd.read_csv(embeddings_path)
+    #embeddings_path = os.path.join("uploads", "winter_olympics_2022.csv") 
+    # Replace 'uploads' with the path to your uploads folder
+    csv_dataframes = custom_utils.read_csv_files('uploads')
+    print("ALL DF ", csv_dataframes)
+    
+    df = csv_dataframes
+    #df = pd.read_csv(embeddings_path)
     #df['embeddings'] = df['embeddings'].apply(ast.literal_eval)
 
     results_data = {}
@@ -234,7 +238,6 @@ def searchwithembeddings():
         data = {'results': ['apple', 'banana', 'cherry']}
     else:
       query = request.json['query']
-
 
     results = custom_utils.ask(query,df)
 
